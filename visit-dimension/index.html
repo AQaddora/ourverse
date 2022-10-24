@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <title>Visit Dimension</title>
+  <link rel="shortcut icon" type="image/png" href="logo.png">
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <div id="unity-container">
+    <canvas id="unity-canvas"></canvas>
+  </div> 
+  <div id="loading" class="loading">
+    <img class="scale" src="/logo.png">
+  </div>
+  <script>
+	  //GiveUpKeyboard function
+	  //unityInstance.SendMessage('BG_Scripts/JsBridge', 'GiveUpKeyboard');
+
+    //Change this to true when deploying to disable logs
+    var production = false;
+
+    //For APIs
+    var apiBase = "https://portal.chickchack.net:7005/api/v6/mobile-game/";
+    //For Socket Connection
+    var socketBase = "https://portal.chickchack.net:7005/";
+    //For S3 "Storage"
+    var storageBase = "https://chickchack.s3.eu-west-2.amazonaws.com"
+    //For meeting Urls    
+    var linkBase = "https://portal.chickchack.net:7005";
+
+    //For PiPhi Map
+    var lat = 25.0418278;
+    var lon = 55.2513757;
+
+    const params = new URLSearchParams(document.location.search);
+    //to load a dimension from params
+    var dimensionId = params.get("dimensionId");
+    var dimensionType = params.get("dimensionType");
+    
+    var accessToken = null;
+
+    //must set to playerToken Cookie
+    //if (accessToken === null)
+    //  accessToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0eXBlIjoiY3VzdG9tZXItZ2FtZSIsImlkIjoyMSwiaWF0IjoxNjUzNDgwMTI1fQ.jC_k5bWthDIwepJK6u2ZpWuC3i3l5iXFraFEzSP8ukg";
+    //set here to dimension
+    if (dimensionId === null)
+      dimensionId = -1;
+    //set type 0 = customer, 1 buisness
+    if (dimensionType === null)
+      dimensionType = 0;
+
+    var buildUrl = "Build";
+    var loaderUrl = buildUrl + "/visit-dimension.loader.js";
+    var config = {
+      dataUrl: "visit-dimension.data.br",
+      frameworkUrl: "visit-dimension.framework.js.br",
+      codeUrl: "visit-dimension.wasm.br",
+      streamingAssetsUrl: "StreamingAssets",
+      companyName: "PiPhi Technology",
+      productName: "Visit Dimension",
+      productVersion: "1.0",
+    };
+    var container = document.querySelector("#unity-container");
+    var canvas = document.querySelector("#unity-canvas");
+    var loading = document.querySelector("#loading");
+    var platform = 4; //1 mobile, 2 windows, 4 mac, 8 linux
+    loading.style.display = "";
+    if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+      config.devicePixelRatio = 1;
+      platform = 1;
+    }
+    if (navigator.platform.toUpperCase().indexOf('MAC') >= 0) {
+      platform = 4;
+    }
+    var script = document.createElement("script");
+    script.src = loaderUrl;
+    script.onload = () => {
+      createUnityInstance(canvas, config, (progress) => {
+      }).then((unityInstance) => {
+        window.unityInstance = unityInstance;
+        loading.style.display = 'none';
+        unityInstance.SendMessage('BG_Scripts/Constatnts', 'SetPlatform', platform);
+      }).catch((message) => {
+        alert(message);
+      });
+    };
+    document.body.appendChild(script);
+  </script>
+</body>
+</html>
